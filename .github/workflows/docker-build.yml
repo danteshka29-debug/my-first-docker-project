@@ -1,35 +1,43 @@
-# Название нашего workflow. Оно будет отображаться в разделе "Actions" на GitHub
-name: Docker Image CI
+# Название нашего workflow
+name: Docker Image CI/CD
 
-# Триггер: Условие, при котором workflow будет запускаться
+# Триггер: Запускать при пуше в main
 on:
-  # Запускать при каждом push в ветку main
   push:
     branches: [ "main" ]
 
-# Задачи (Jobs): Список задач, которые нужно выполнить
+# Задачи (Jobs)
 jobs:
-  # Мы определили одну задачу и назвали ее 'build'
-  build:
-    # Указываем, на какой операционной системе будет работать наша задача.
-    # GitHub предоставит нам "виртуальную машину" с последней версией Ubuntu.
+  build-and-push: # Мы переименовали задачу для ясности
     runs-on: ubuntu-latest
+    # Добавляем права на запись в Packages
+    permissions:
+      contents: read
+      packages: write
 
-    # Шаги (Steps): Последовательность действий, которые нужно выполнить в рамках задачи
+    # Шаги (Steps)
     steps:
-      # Шаг 1: Клонирование репозитория
-      # Это стандартное действие, которое скачивает ваш код на виртуальную машину
+      # Шаг 1: Клонирование репозитория (остался без изменений)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Шаг 2: Сборка Docker-образа
-      # Мы используем готовое действие от сообщества Docker для упрощения сборки
-      - name: Build Docker image
+      # НОВЫЙ ШАГ 2: Вход в GitHub Container Registry
+      - name: Log in to the Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          # GITHUB_TOKEN - это временный секретный ключ, который GitHub Actions создает автоматически
+          # для авторизации в рамках репозитория.
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ИЗМЕНЕННЫЙ ШАГ 3: Сборка и Публикация Docker-образа
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          # 'context' указывает, где находится Dockerfile ('.' - в корне проекта)
           context: .
-          # 'push: false' означает, что мы только собираем образ, но не отправляем его никуда
-          push: false
-          # 'tags' задает имя для нашего образа. Пока это просто для примера.
-          tags: my-docker-image:latest
+          # 'push: true' - теперь мы отправляем образ
+          push: true
+          # 'tags' - мы задаем правильное имя для образа в GHCR
+          # Формат: ghcr.io/ВАШ_НИКНЕЙМ/ИМЯ_РЕПОЗИТОРИЯ:latest
+          tags: ghcr.io/${{ github.repository }}:latest
