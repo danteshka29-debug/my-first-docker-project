@@ -38,4 +38,4 @@
 
 После того как пайплайн успешно отработает, вы можете запустить опубликованный образ на любом хосте с Docker:
 ```bash
-docker run --rm -d -p 8080:80 ghcr.io/ВАШ_НИКНЕЙМ/my-first-docker-project:latest
+docker run --rm -d -p 8080:80 ghcr.io/danteshka29-debug/my-first-docker-project:latest
