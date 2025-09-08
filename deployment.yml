@@ -1,0 +1,41 @@
+# deployment.yml
+
+# --- Deployment ---
+# Deployment отвечает за то, чтобы определенное количество копий (реплик)
+# нашего приложения всегда было запущено. Он управляет жизненным циклом Подов:
+# создает, обновляет и масштабирует их.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Имя нашего Deployment. Используется для управления, например: kubectl get deployment my-website-deployment
+  name: my-website-deployment
+spec:
+  # replicas: количество желаемых копий нашего приложения.
+  # Kubernetes будет постоянно следить, чтобы их было ровно 2.
+  replicas: 2
+  
+  # selector: механизм, с помощью которого Deployment находит Поды, которыми он должен управлять.
+  # Он будет искать все Поды с меткой 'app: my-website'.
+  selector:
+    matchLabels:
+      app: my-website
+      
+  # template: это "чертеж" или шаблон, по которому создаются Поды.
+  template:
+    metadata:
+      # labels: присваиваем Подам метки. 'app: my-website' - это та самая метка,
+      # которую ищет selector нашего Deployment'а и Service.
+      labels:
+        app: my-website
+    spec:
+      # Описание контейнеров, которые будут запущены внутри каждого Пода.
+      containers:
+      - name: nginx-container # Имя контейнера (важно, если их несколько в Поде)
+        # image: Docker-образ, который нужно скачать и запустить.
+        # IMAGE_TAG - это плейсхолдер, который наш CI/CD пайплайн заменит на реальный тег.
+        image: ghcr.io/danteshka29-debug/my-first-docker-project:IMAGE_TAG
+        
+        # ports: список портов, которые "открывает" контейнер.
+        ports:
+        - containerPort: 80 # Наше Nginx-приложение слушает 80-й порт.

@@ -1,0 +1,31 @@
+# service.yml
+
+# --- Service ---
+# Service предоставляет стабильный сетевой интерфейс для группы Подов.
+# Поды могут умирать и создаваться заново, меняя свои IP-адреса. Service
+# имеет постоянный IP-адрес и автоматически направляет трафик на
+# работающие Поды.
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Имя нашего Service. Используется для управления, например: kubectl get service my-website-service
+  name: my-website-service
+spec:
+  # selector: механизм, с помощью которого Service находит Поды, на которые нужно отправлять трафик.
+  # Он будет искать все Поды с меткой 'app: my-website'.
+  selector:
+    app: my-website
+
+  # ports: описывает, как мапить порты.
+  ports:
+    - protocol: TCP
+      # port: порт, который "слушает" сам Service внутри кластера.
+      port: 80
+      # targetPort: порт на Подах, на который Service будет перенаправлять трафик.
+      targetPort: 80
+      
+  # type: определяет, как Service будет доступен.
+  # В облачном кластере Yandex.Cloud тип LoadBalancer автоматически создаст
+  # внешний сетевой балансировщик с публичным IP-адресом.
+  type: LoadBalancer

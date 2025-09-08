@@ -1,43 +1,52 @@
-# Название нашего workflow
-name: Docker Image CI/CD
+name: Build, Push and Deploy to K8s
 
-# Триггер: Запускать при пуше в main
 on:
   push:
     branches: [ "main" ]
 
-# Задачи (Jobs)
 jobs:
-  build-and-push: # Мы переименовали задачу для ясности
+  build-and-deploy:
     runs-on: ubuntu-latest
-    # Добавляем права на запись в Packages
-    permissions:
-      contents: read
-      packages: write
-
-    # Шаги (Steps)
     steps:
-      # Шаг 1: Клонирование репозитория (остался без изменений)
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # НОВЫЙ ШАГ 2: Вход в GitHub Container Registry
-      - name: Log in to the Container Registry
+      # --- Шаг 1: Сборка и публикация образа (немного изменен) ---
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          # GITHUB_TOKEN - это временный секретный ключ, который GitHub Actions создает автоматически
-          # для авторизации в рамках репозитория.
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ИЗМЕНЕННЫЙ ШАГ 3: Сборка и Публикация Docker-образа
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          # 'push: true' - теперь мы отправляем образ
           push: true
-          # 'tags' - мы задаем правильное имя для образа в GHCR
-          # Формат: ghcr.io/ВАШ_НИКНЕЙМ/ИМЯ_РЕПОЗИТОРИЯ:latest
-          tags: ghcr.io/${{ github.repository }}:latest
+          # Создаем два тега: latest и уникальный по хэшу коммита
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      # --- Шаг 2: Развертывание в Yandex Cloud K8s ---
+      - name: Install Yandex.Cloud CLI
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          echo "/home/runner/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Authenticate in Yandex.Cloud
+        run: |
+          echo '${{ secrets.YC_SA_KEY_FOR_K8S }}' > sa-key.json
+          yc config set service-account-key sa-key.json
+          yc config set cloud-id <b1gq2skmnrhbocitkhi8> # <-- ЗАМЕНИТЕ
+          yc config set folder-id <b1g10ltn901u7m511qi2> # <-- ЗАМЕНИТЕ
+
+      - name: Get K8s cluster credentials
+        run: yc managed-kubernetes cluster get-credentials --name my-dev-cluster --external
+
+      - name: Replace image tag in deployment manifest
+        run: sed -i 's|IMAGE_TAG|${{ github.sha }}|' deployment.yml
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f .
