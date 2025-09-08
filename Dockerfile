@@ -1,5 +1,9 @@
-# Используем официальный образ Nginx в качестве основы
+# Используем официальный образ Nginx
 FROM nginx:latest
 
-# Копируем наш файл index.html в папку, где Nginx хранит статические файлы
+# Копируем нашу главную страницу
 COPY index.html /usr/share/nginx/html/
+
+# НОВЫЙ ШАГ: Копируем нашу конфигурацию Nginx
+# Мы заменяем стандартный /etc/nginx/conf.d/default.conf на наш.
+COPY config/nginx.conf /etc/nginx/conf.d/default.conf
