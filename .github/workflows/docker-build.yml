@@ -58,7 +58,4 @@ jobs:
         run: sed -i 's|IMAGE_TAG|${{ github.sha }}|' deployment.yml
 
       - name: Deploy to Kubernetes
-        run: kubectl apply -f .```
-**Что изменилось:**
-*   Мы убрали ваши ID из кода.
-*   Теперь `yc config set ...` берет значения из секретов `${{ secrets.YC_CLOUD_ID }}` и `${{ secrets.YC_FOLDER_ID }}
+        run: kubectl apply -f .
