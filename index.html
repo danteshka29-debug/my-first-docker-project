@@ -2,14 +2,119 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мой первый Docker-проект</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приложение развернуто!</title>
     <style>
-        body { font-family: sans-serif; background-color: #282c34; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        h1 { font-size: 3em; text-align: center; }
-        span { color: #61dafb; }
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body {
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #16213e, #0f3460, #533483, #e94560);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background-color: rgba(26, 26, 46, 0.8);
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(224, 224, 224, 0.2);
+        }
+
+        h1 {
+            color: #16c79a;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(22, 199, 154, 0.7);
+        }
+
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .info {
+            background-color: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 5px solid #16c79a;
+            text-align: left;
+        }
+        
+        .info span {
+            color: #e94560;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
-    <h1>Привет из моего первого <span>Docker-контейнера</span>!</h1>
+
+    <div class="container">
+        <h1>🚀 Приложение успешно развернуто!</h1>
+        <p>Этот статический сайт работает в контейнере Nginx,<br>развернутом в облачном кластере Kubernetes.</p>
+        <div class="info" id="info-box">
+            Загрузка данных...
+        </div>
+    </div>
+
+    <script>
+        // Мы используем JavaScript, чтобы добавить немного динамики.
+        // Это не обязательно, но выглядит круто.
+
+        function getVersionInfo() {
+            // В реальном проекте эта информация будет браться
+            // из переменных окружения или API.
+            // Сейчас мы просто имитируем это.
+            const version = "v1.1.0"; // Можете менять эту версию при каждом пуше
+            const commitHash = "${{ github.sha }}"; // CI/CD система подставит сюда хэш коммита
+
+            let commitDisplay = commitHash;
+            // Проверяем, если CI/CD не подставил хэш (например, при локальном запуске)
+            if (commitHash.includes('github.sha')) {
+                commitDisplay = 'локальный запуск';
+            } else {
+                commitDisplay = commitHash.substring(0, 7);
+            }
+
+            const infoBox = document.getElementById('info-box');
+            infoBox.innerHTML = `
+                Версия сборки: <span>${version}</span><br>
+                Хэш коммита: <span>${commitDisplay}</span>
+            `;
+        }
+
+        // Вызываем функцию при загрузке страницы
+        window.onload = getVersionInfo;
+    </style>
+
 </body>
 </html>
